@@ -71,13 +71,31 @@ abstract class Tx_Expose_MVC_View_AbstractView implements Tx_Extbase_MVC_View_Vi
 	 */
 	public function assign($elementName, $values) {
 		if ($elementName === 'settings') {
+			// Store settings
 			$this->settings = $values;
 		} else {
-			$this->baseElementName = $elementName;
-			$this->variable = $values;
+			if ($this->variable == NULL) {
+				$this->baseElementName = $elementName;
+				$this->variable = $values;
+			} else {
+				throw new Tx_Expose_Exception_RuntimeException(
+					'Your variables is always assigned, you can only assign one variable to respect REST philosophy, please use clearAssignment(), before setting a new variable',
+					1334313500
+				);
+			}
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Clear variable assignment
+	 * @return Tx_Expose_MVC_View_AbstractView instance of $this to allow chaining
+	 * @api
+	 */
+	public function clearAssignment() {
+		$this->variable = NULL;
+		$this->baseElementName = 'record';
 	}
 
 	/**
@@ -88,8 +106,10 @@ abstract class Tx_Expose_MVC_View_AbstractView implements Tx_Extbase_MVC_View_Vi
 	 * @api
 	 */
 	public function assignMultiple(array $values) {
-
-		return $this;
+		throw new Tx_Expose_Exception_RuntimeException(
+			'You can not assign multiple variables, use assign() method',
+			1334313429
+		);
 	}
 
 	/**
