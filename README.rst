@@ -9,6 +9,8 @@ EXT: Expose Extbase Model in standard Webservices
 :Date:          2012-04-13
 :Version:       0.1.0
 :Description:   This is the documentation for the TYPO3 extension expose.
+                Expose extension allow easy setup of readonly web
+                services, configured by TypoScript.
 
 
 | Copyright 2000-2012, `Dominique Feyer <dfeyer@ttree.ch>`_
@@ -19,6 +21,7 @@ EXT: Expose Extbase Model in standard Webservices
 | The content of this document is related to TYPO3
 | - a GNU/GPL CMS/Framework available from www.typo3.org
 
+.. contents::
 
 Introduction
 ============
@@ -36,12 +39,280 @@ You can configure with properties will be exported in TypoScript.
 Configuration
 =============
 
-To be written ...
+Create a controller
+-------------------
+
+You need to extension the controller abstract class Tx_Expose_MVC_Controller_BasicController, like in this example:
+
+.. code-block:: php
+
+   class Tx_Extension_Controller_RecordApiController extends Tx_Expose_MVC_Controller_BasicController {
+
+     /**
+      * @var Tx_Extension_Domain_Repository_RecordRepository
+      */
+     protected $recordRepository;
+
+     /**
+      * @param Tx_Extension_Domain_Repository_RecordRepository $recordRepository
+      * @return void
+      */
+     public function injectFilmRepository(Tx_Extension_Domain_Repository_RecordRepository $recordRepository) {
+       $this->recordRepository = $recordRepository;
+     }
+
+     /**
+      * @return void
+      */
+     public function listAction() {
+       $records = $this->recordRepository->findAll();
+
+       $this->view->setRootElementName('records');
+       $this->view->assign('record', $records);
+     }
+   }
+
+By default the XML view is selected. The root element name can be set with $this->view->setRootElementName($name). To
+respect RESTful philisophy, you can assign only one variable per action. In this case every domain model in the $records
+variable will be rendered in a node name "record".
+
+Integrate your plugin in a page
+-------------------------------
+
+You can include your plugin with the TypoScript configuration:
+
+Example::
+
+   lib.api.records = USER
+   lib.api.records {
+     userFunc = tx_extbase_core_bootstrap->run
+     extensionName = Extension
+     pluginName = Api
+     switchableControllerActions {
+       RecordApi {
+         1 = list
+         2 = show
+       }
+     }
+   }
+
+   config {
+     absRefPrefix = http://www.domain.com/
+     debug = 0
+
+     # deactivate Standard-Header
+     disableAllHeaderCode = 1
+     # no xhtml tags
+     xhtml_cleaning = none
+     admPanel = 0
+     metaCharset = utf-8
+     # define charset
+     additionalHeaders = Content-Type:text/xml;charset=utf-8
+     disablePrefixComment = 1
+   }
+
+   page = PAGE
+   page.10 < lib.api.records
+
+With this setup you can use the page cache, to cache the content of your webservice, if this is not what you need
+you can use a USER_INT.
+
+.. note::
+
+   In a future version, we will integrate the Caching Framework
+   to have a more configurable caching solution.
 
 Administration
-=============
+==============
 
-To be written ...
+TypoScript Configuration
+------------------------
+
+The administration of the webservice content is done entirely in TypoScript, here is an example of configuration:
+
+..  :widths: 15 10 30 20
+.. list-table:: Frozen Delights!
+ :header-rows: 1
+
+ + * Property
+
+   * Data type
+
+   * Description
+
+   * Default
+
+
+ + * path
+
+   * string
+
+   * The full path to get the property value
+
+
+ + * type
+
+   * element|cdata|relations
+
+   * The type of the current element
+
+   * element
+
+
+ + * element
+
+   * string
+
+   * Use only when the current type is relations, set the section element name
+
+
+ + * children
+
+   * string
+
+   * Use only when the current type is relations, set the children node name
+
+
+ + * conf
+
+   * string
+
+   * Use only when the current type is relations, valid TypoScript path for the relation configuration
+
+
+ + * element
+
+   * The element/node name in the webservice output
+
+   * Any valid string, that can be used as a element/node value in the output format
+
+
+ + * userFunc
+
+   * userFunc Configuration
+
+   * You can process the content of the Element with a user function
+
+
+ + * userFunc.class
+
+   * valid path
+
+   * The path to the class
+
+
+ + * userFunc.method
+
+   * string
+
+   * The method to use has userFunc
+
+
+ + * userFunc.params
+
+   * array
+
+   * userFunc paramaters
+
+
+ + * stdWrap
+
+   * stdWrap
+
+   * stdWrap configuration (to be implemented)
+
+
+Example::
+
+   plugin.tx_extension {
+     settings {
+       api {
+         conf {
+           # Configuration for rootElement "records"
+           records {
+             path = api.node.record
+             modelComment = Film Model
+           }
+         }
+         node {
+           record {
+             name {
+               path = name
+               element = completion_date
+             }
+             content {
+               path = content
+               element = content
+               userFunc {
+                 class = EXT:extension/Classes/Utility/TextUtility.php:&Tx_Extension_Utility_TextUtility
+                 method = cleanTextContent
+               }
+             }
+             country {
+               path = country.name
+               element = country_name
+             }
+           }
+         }
+       }
+     }
+   }
+
+
+Relation Support
+----------------
+
+You can use the element type "relations" to include children element. Each relation element can have their proper
+configuration (see the conf, key). Currently we support only multiple relation, an example XML output can be:
+
+.. code-block:: php
+
+   <records>
+     <record>
+       <name>Name</name>
+       <groups>
+         <group>
+           <name>Group Name #1</name>
+         </group>
+         <group>
+           <name>Group Name #2</name>
+         </group>
+       </groups>
+     </record>
+     <record>
+     ...
+     </record>
+   </records>
+
+To support for 1:1 relation type is planned, to support output like:
+
+.. code-block:: php
+
+   <records>
+     <record>
+       <name>Name</name>
+       <group>
+         <name>Group Name #1</name>
+       </group>
+     </record>
+     <record>
+     ...
+     </record>
+   </records>
+
+Currently you can include property from a 1:1 relation by setting path to "group.name", to have:
+
+.. code-block:: php
+
+   <records>
+     <record>
+       <name>Name</name>
+       <group_name>Group Name #1</group_name>
+     </record>
+     <record>
+     ...
+     </record>
+   </records>
 
 Todos
 =====
