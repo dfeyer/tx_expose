@@ -36,6 +36,10 @@ Currently only XML is supported but a JSON and YAML view is planned.
 
 You can configure with properties will be exported in TypoScript.
 
+As Github don't support the all the Restructured Text element used by
+TYPO3 Documentation Team, please check the RAW README.rst to have proper
+documentation.
+
 Configuration
 =============
 
