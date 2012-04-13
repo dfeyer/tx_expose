@@ -108,7 +108,7 @@ final class Tx_Expose_MVC_View_XMLView extends Tx_Expose_MVC_View_AbstractView {
 	protected function processDomainModel($record, array $configuration, DOMElement $rootElement) {
 		foreach ($configuration as $key => $elementConfiguration) {
 			$propertyPath = $elementConfiguration['path'];
-			$elementName = $elementConfiguration['element'];
+			$elementName = $elementConfiguration['element'] ?: t3lib_div::camelCaseToLowerCaseUnderscored($elementConfiguration['path']);
 
 			// Create element
 			if (trim($elementName) === '') {
