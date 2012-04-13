@@ -27,8 +27,9 @@ Read Only Webservice without coding
 -----------------------------------
 
 This extension provide a simple way to configured how you will expose
-your Extbase domain model as a standard webservice. Currently only XML is
-supported but a JSON view is planned.
+your Extbase domain model as a standard readonly webservice.
+
+Currently only XML is supported but a JSON and YAML view is planned.
 
 You can configure with properties will be exported in TypoScript.
 
@@ -54,3 +55,7 @@ Todos
    We can abstract the document creation stack to allow easy support of multiple format
    like JSON and YAML per example. If you need those formats, you can provide a patch or
    contact us
+
+3. Add support for CRUD operation
+   Currently this not the use case of the extension, but maybe later we can allow CRUD
+   operations on domain model.
