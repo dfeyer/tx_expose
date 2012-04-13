@@ -262,6 +262,49 @@ Example::
      }
    }
 
+stdWrap Support
+---------------
+
+You can add stdWrap parsing with the key "stdWrap" in any node.
+
+Content Object Support
+----------------------
+
+A node can be a Content Object element, with this kind of configuration:
+
+Example::
+
+   plugin.tx_extension {
+     settings {
+       api {
+         conf {
+           # Configuration for rootElement "records"
+           records {
+             path = api.node.record
+             modelComment = Film Model
+           }
+         }
+         node {
+           record {
+             name {
+               path = name
+               element = completion_date
+             }
+             link = TEXT
+             link {
+               typolink {
+                  parameter = 1261
+                  additionalParams = &tx_extension_list[controller]=List&tx_extension_list[action]=show&tx_extension_list[film]={field:uid}
+                  additionalParams.insertData = 1
+                  returnLast = url
+                  typolink.useCacheHash = 1
+               }
+             }
+           }
+         }
+       }
+     }
+   }
 
 Relation Support
 ----------------
@@ -269,7 +312,7 @@ Relation Support
 You can use the element type "relations" to include children element. Each relation element can have their proper
 configuration (see the conf, key). Currently we support only multiple relation, an example XML output can be:
 
-.. code-block:: php
+Example::
 
    <records>
      <record>
@@ -290,7 +333,7 @@ configuration (see the conf, key). Currently we support only multiple relation, 
 
 To support for 1:1 relation type is planned, to support output like:
 
-.. code-block:: php
+Example::
 
    <records>
      <record>
@@ -306,7 +349,7 @@ To support for 1:1 relation type is planned, to support output like:
 
 Currently you can include property from a 1:1 relation by setting path to "group.name", to have:
 
-.. code-block:: php
+Example::
 
    <records>
      <record>

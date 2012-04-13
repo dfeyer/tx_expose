@@ -48,9 +48,18 @@ abstract class Tx_Expose_MVC_View_AbstractView implements Tx_Extbase_MVC_View_Vi
 	protected $baseElementName = 'record';
 
 	/**
+	 * @var tslib_cObj
+	 */
+	protected $contentObject;
+
+	/**
 	 * @var array
 	 */
 	protected $settings = array();
+
+	public function __construct() {
+		$this->contentObject = t3lib_div::makeInstance('tslib_cObj');
+	}
 
 	/**
 	 * Dummy method to satisfy the ViewInterface
@@ -163,9 +172,42 @@ abstract class Tx_Expose_MVC_View_AbstractView implements Tx_Extbase_MVC_View_Vi
 	 * @param string $propertyPath
 	 * @param array $configuration
 	 * @param bool $htmlentities
-	 * @return bool|mixed|string
+	 * @return string|bool
 	 */
 	protected function getElementValue($record, $propertyPath, array $configuration, $htmlentities = TRUE) {
+		if (!empty($configuration['_typoScriptNodeValue'])) {
+			$elementValue = $this->getElementContentObjectValue($record, $configuration);
+		} else {
+			$elementValue = $this->getElementRawValue($record, $propertyPath, $configuration, $htmlentities);
+		}
+
+		return $this->processUserFunc($elementValue, $configuration);
+	}
+
+	/**
+	 * Get the value for a give element, build by content object
+	 *
+	 * @param object|array $record
+	 * @param array $configuration
+	 * @return string|bool
+	 */
+	protected function getElementContentObjectValue($record, array $configuration) {
+		$data = Tx_Extbase_Reflection_ObjectAccess::getGettableProperties($record);
+		$this->contentObject->start($data);
+
+		return $this->contentObject->cObjGetSingle($configuration['_typoScriptNodeValue'], $configuration);
+	}
+
+	/**
+	 * Get the value for a give element, based on the object path
+	 *
+	 * @param object|array $record
+	 * @param string $propertyPath
+	 * @param array $configuration
+	 * @param bool $htmlentities
+	 * @return string|bool
+	 */
+	protected function getElementRawValue($record, $propertyPath, array $configuration, $htmlentities = TRUE) {
 		$elementValue = Tx_Extbase_Reflection_ObjectAccess::getPropertyPath($record, $propertyPath);
 
 		$elementValue = str_replace('’', '\'', $elementValue);
@@ -177,18 +219,36 @@ abstract class Tx_Expose_MVC_View_AbstractView implements Tx_Extbase_MVC_View_Vi
 			$elementValue = htmlspecialchars($elementValue);
 		}
 
-		// Apply defined user function
-		if (isset($configuration['userFunc'])) {
-			$userObject = t3lib_div::getUserObj($configuration['userFunc']['class']);
-			if ($userObject !== FALSE) {
-				$methodName = $configuration['userFunc']['method'];
-				$parameters = isset($configuration['userFunc']['params']) ? $configuration['userFunc']['params'] : array();
-				$elementValue = $userObject->$methodName($elementValue, $parameters);
-			}
+		// stdWrap support
+		if (!empty($configuration['stdWrap'])) {
+			$data = Tx_Extbase_Reflection_ObjectAccess::getGettableProperties($record);
+			$this->contentObject->start($data);
+			$elementValue = $this->contentObject->stdWrap($elementValue, $configuration['stdWrap']);
 		}
 
 		if (trim($elementValue) === '') {
 			$elementValue = FALSE;
+		}
+
+		return $elementValue;
+	}
+
+	/**
+	 * @param string $elementValue
+	 * @param array $configuration
+	 * @return string
+	 */
+	protected function processUserFunc($elementValue, array $configuration) {
+		// Apply defined user function
+		if (!isset($configuration['userFunc'])) {
+			return $elementValue;
+		}
+
+		$userObject = t3lib_div::getUserObj($configuration['userFunc']['class']);
+		if ($userObject !== FALSE) {
+			$methodName = $configuration['userFunc']['method'];
+			$parameters = isset($configuration['userFunc']['params']) ? $configuration['userFunc']['params'] : array();
+			$elementValue = $userObject->$methodName($elementValue, $parameters);
 		}
 
 		return $elementValue;
