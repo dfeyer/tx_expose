@@ -108,7 +108,7 @@ final class Tx_Expose_MVC_View_XMLView extends Tx_Expose_MVC_View_AbstractView {
 	protected function processDomainModel($record, array $configuration, DOMElement $rootElement) {
 		foreach ($configuration as $key => $elementConfiguration) {
 			$propertyPath = $elementConfiguration['path'];
-			$elementName = $elementConfiguration['element'] ?: t3lib_div::camelCaseToLowerCaseUnderscored($elementConfiguration['path']);
+			$elementName = $elementConfiguration['element'] ? : t3lib_div::camelCaseToLowerCaseUnderscored($elementConfiguration['path']);
 
 			// Create element
 			if (trim($elementName) === '') {
@@ -131,8 +131,13 @@ final class Tx_Expose_MVC_View_XMLView extends Tx_Expose_MVC_View_AbstractView {
 					$this->appendCDATATextChild($element, $record, $propertyPath, $elementConfiguration);
 
 					break;
+				case 'relation':
+					$this->appendSingleChildrenNode($element, $record, $propertyPath, $elementConfiguration);
+
+					break;
 				case 'relations':
 					$this->appendMultipleChildrenNodes($element, $record, $propertyPath, $elementConfiguration);
+
 					break;
 				default:
 					throw new Tx_Expose_Exception_InvalidConfigurationException(
@@ -205,6 +210,36 @@ final class Tx_Expose_MVC_View_XMLView extends Tx_Expose_MVC_View_AbstractView {
 			$this->processDomainModel($record, $relationConfiguration, $relationRootElement);
 			$parentElement->appendChild($relationRootElement);
 		}
+	}
+
+	/**
+	 * Process a multiple relations
+	 *
+	 * @param DOMElement $element
+	 * @param object|array $record
+	 * @param string $propertyPath
+	 * @param array $elementConfiguration
+	 * @throws Tx_Expose_Exception_InvalidConfigurationException
+	 */
+	protected function appendSingleChildrenNode(DOMElement $element, $record, $propertyPath, array $elementConfiguration) {
+		if (trim($elementConfiguration['conf']) === '') {
+			throw new Tx_Expose_Exception_InvalidConfigurationException(
+				'Unable to process relations without configuration',
+				1334310033
+			);
+		}
+
+		$relationRecord = Tx_Extbase_Reflection_ObjectAccess::getPropertyPath($record, $propertyPath);
+		$relationConfiguration = $this->getSettingByPath($elementConfiguration['conf']);
+
+		if (!is_array($relationConfiguration)) {
+			throw new Tx_Expose_Exception_InvalidConfigurationException(
+				'Invalid configuration',
+				1334310035
+			);
+		}
+
+		$this->processDomainModel($relationRecord, $relationConfiguration, $element);
 	}
 
 	/**

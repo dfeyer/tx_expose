@@ -331,7 +331,7 @@ Example::
      </record>
    </records>
 
-To support for 1:1 relation type is planned, to support output like:
+To support 1:1 relation you can use the type "relation" (without the ending "s"), like have this kind of output:
 
 Example::
 
@@ -347,7 +347,7 @@ Example::
      </record>
    </records>
 
-Currently you can include property from a 1:1 relation by setting path to "group.name", to have:
+You can also include property from a 1:1 relation by setting path to "group.name", to have:
 
 Example::
 
