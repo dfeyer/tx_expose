@@ -23,7 +23,7 @@
  ***************************************************************/
 
 /**
- * This view export the current data as XML
+ * This view export the current data as JSON
  *
  * @author		Dominique Feyer (ttree) <dfeyer@ttree.ch>
  * @package		TYPO3

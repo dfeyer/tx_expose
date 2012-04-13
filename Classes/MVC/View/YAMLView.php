@@ -1,5 +1,4 @@
 <?php
-
 /***************************************************************
  *  Copyright notice
  *
@@ -24,32 +23,41 @@
  ***************************************************************/
 
 /**
- * Basic Controller
+ * This view export the current data as YAML
  *
  * @author		Dominique Feyer (ttree) <dfeyer@ttree.ch>
  * @package		TYPO3
  * @subpackage	tx_expose
  *
  */
-abstract class Tx_Expose_MVC_Controller_BasicController extends Tx_Extbase_MVC_Controller_ActionController {
+final class Tx_Expose_MVC_View_YAMLView extends Tx_Expose_MVC_View_AbstractView {
 
 	/**
-	 * Default View object
-	 *
 	 * @var string
 	 */
-	protected $defaultViewObjectName = 'Tx_Expose_MVC_View_XMLView';
+	protected $version = '1.0';
 
 	/**
-	 * Supported output format
-	 *
-	 * @var array
+	 * @var string
 	 */
-	protected $viewFormatToObjectNameMap = array(
-		'xml' => 'Tx_Expose_MVC_View_XMLView',
-		'json' => 'Tx_Expose_MVC_View_JSONView',
-		'yaml' => 'Tx_Expose_MVC_View_YAMLView'
-	);
+	protected $encoding = 'UTF-8';
+
+	/**
+	 * @var DOMDocument
+	 */
+	protected $document;
+
+	/**
+	 * Renders the empty view
+	 *
+	 * @return string An empty string
+	 */
+	public function render() {
+		throw new Tx_Expose_Exception_RuntimeException(
+			'YAML View is currently not implemented',
+			1334312824
+		);
+	}
 
 }
 
