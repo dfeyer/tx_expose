@@ -30,22 +30,7 @@
  * @subpackage	tx_expose
  *
  */
-final class Tx_Expose_MVC_View_XMLView implements Tx_Extbase_MVC_View_ViewInterface {
-
-	/**
-	 * @var mixed
-	 */
-	protected $variable = NULL;
-
-	/**
-	 * @var string
-	 */
-	protected $rootElementName = 'records';
-
-	/**
-	 * @var string
-	 */
-	protected $baseElementName = 'record';
+final class Tx_Expose_MVC_View_XMLView extends Tx_Expose_MVC_View_AbstractView {
 
 	/**
 	 * @var string
@@ -58,65 +43,9 @@ final class Tx_Expose_MVC_View_XMLView implements Tx_Extbase_MVC_View_ViewInterf
 	protected $encoding = 'UTF-8';
 
 	/**
-	 * @var array
-	 */
-	protected $settings = array();
-
-	/**
 	 * @var DOMDocument
 	 */
 	protected $document;
-
-	/**
-	 * Dummy method to satisfy the ViewInterface
-	 *
-	 * @param Tx_Extbase_MVC_Controller_ControllerContext $controllerContext
-	 * @return void
-	 */
-	public function setControllerContext(Tx_Extbase_MVC_Controller_ControllerContext $controllerContext) {
-	}
-
-	/**
-	 * Dummy method to satisfy the ViewInterface
-	 *
-	 * @param string $elementName
-	 * @param mixed $values
-	 * @return Tx_Expose_MVC_View_XMLView instance of $this to allow chaining
-	 * @api
-	 */
-	public function assign($elementName, $values) {
-		if ($elementName === 'settings') {
-			$this->settings = $values;
-		} else {
-			$this->baseElementName = $elementName;
-			$this->variable = $values;
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Dummy method to satisfy the ViewInterface
-	 *
-	 * @param array $values
-	 * @return Tx_Expose_MVC_View_XMLView instance of $this to allow chaining
-	 * @api
-	 */
-	public function assignMultiple(array $values) {
-
-		return $this;
-	}
-
-	/**
-	 * This view can be used in any case.
-	 *
-	 * @param Tx_Extbase_MVC_Controller_ControllerContext $controllerContext
-	 * @return boolean TRUE
-	 * @api
-	 */
-	public function canRender(Tx_Extbase_MVC_Controller_ControllerContext $controllerContext) {
-		return TRUE;
-	}
 
 	/**
 	 * Renders the empty view
@@ -133,30 +62,6 @@ final class Tx_Expose_MVC_View_XMLView implements Tx_Extbase_MVC_View_ViewInterf
 		$this->renderVariable($rootElement);
 
 		return $this->document->saveXML();
-	}
-
-	/**
-	 * A magic call method.
-	 *
-	 * Because this empty view is used as a Special Case in situations when no matching
-	 * view is available, it must be able to handle method calls which originally were
-	 * directed to another type of view. This magic method should prevent PHP from issuing
-	 * a fatal error.
-	 *
-	 * @return void
-	 */
-	public function __call($methodName, array $arguments) {
-	}
-
-	/**
-	 * Initializes this view.
-	 *
-	 * Override this method for initializing your concrete view implementation.
-	 *
-	 * @return void
-	 * @api
-	 */
-	public function initializeView() {
 	}
 
 	/**
@@ -300,67 +205,6 @@ final class Tx_Expose_MVC_View_XMLView implements Tx_Extbase_MVC_View_ViewInterf
 			$this->processDomainModel($record, $relationConfiguration, $relationRootElement);
 			$parentElement->appendChild($relationRootElement);
 		}
-	}
-
-	/**
-	 * Get the value for a give element
-	 *
-	 * @param object|array $record
-	 * @param string $propertyPath
-	 * @param array $configuration
-	 * @param bool $htmlentities
-	 * @return bool|mixed|string
-	 */
-	protected function getElementValue($record, $propertyPath, array $configuration, $htmlentities = TRUE) {
-		$elementValue = Tx_Extbase_Reflection_ObjectAccess::getPropertyPath($record, $propertyPath);
-
-		$elementValue = str_replace('’', '\'', $elementValue);
-
-		// Encode entities
-		if ($htmlentities) {
-			$elementValue = htmlentities($elementValue);
-		} else {
-			$elementValue = htmlspecialchars($elementValue);
-		}
-
-		// Apply defined user function
-		if (isset($configuration['userFunc'])) {
-			$userObject = t3lib_div::getUserObj($configuration['userFunc']['class']);
-			if ($userObject !== FALSE) {
-				$methodName = $configuration['userFunc']['method'];
-				$parameters = isset($configuration['userFunc']['params']) ? $configuration['userFunc']['params'] : array();
-				$elementValue = $userObject->$methodName($elementValue, $parameters);
-			}
-		}
-
-		if (trim($elementValue) === '') {
-			$elementValue = FALSE;
-		}
-
-		return $elementValue;
-	}
-
-	/**
-	 * Returns the settings at path $path, which is separated by ".",
-	 * e.g. "pages.uid".
-	 * "pages.uid" would return $this->settings['pages']['uid'].
-	 *
-	 * If the path is invalid or no entry is found, false is returned.
-	 *
-	 * @param string $path
-	 * @return mixed
-	 */
-	public function getSettingByPath($path) {
-		return Tx_Extbase_Reflection_ObjectAccess::getPropertyPath($this->settings, $path);
-	}
-
-	/**
-	 * Set XML Root Element name
-	 *
-	 * @param string $rootElementName
-	 */
-	public function setRootElementName($rootElementName) {
-		$this->rootElementName = $rootElementName;
 	}
 
 	/**

@@ -30,6 +30,8 @@ This extension provide a simple way to configured how you will expose
 your Extbase domain model as a standard webservice. Currently only XML is
 supported but a JSON view is planned.
 
+You can configure with properties will be exported in TypoScript.
+
 Configuration
 =============
 
