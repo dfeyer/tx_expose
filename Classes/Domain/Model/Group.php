@@ -1,4 +1,5 @@
 <?php
+
 /***************************************************************
 *  Copyright notice
 *
@@ -22,6 +23,7 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
+
 /**
  * Resume
  *
@@ -30,6 +32,28 @@
  * @package	tx_expose
  * @author	Dominique Feyer <dfeyer@ttree.ch>
  */
-class Tx_Expose_Exception_RuntimeException extends RuntimeException {
+class Tx_Expose_Domain_Model_Group extends Tx_Extbase_DomainObject_AbstractEntity {
 
+	/**
+	 * Group Name
+	 *
+	 * @var string
+	 * @validate NotEmpty
+	 */
+	protected $name;
+
+	/**
+	 * @param string $name
+	 */
+	public function setName($name) {
+		$this->name = $name;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName() {
+		return $this->name;
+	}
 }
+?>

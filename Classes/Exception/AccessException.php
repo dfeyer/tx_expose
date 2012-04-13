@@ -30,6 +30,6 @@
  * @package	tx_expose
  * @author	Dominique Feyer <dfeyer@ttree.ch>
  */
-class Tx_Expose_Exception_RuntimeException extends RuntimeException {
+class Tx_Expose_Exception_AccessException extends Tx_Expose_Exception_RuntimeException {
 
 }

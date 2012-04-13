@@ -1,0 +1,14 @@
+plugin.tx_expose {
+	settings {
+		secure {
+			class = Tx_Expose_Security_SimpleTokenSecurity
+			configuration {
+				allowedGroups = 1
+				argumentName = token
+			}
+		}
+	}
+	persistence {
+		storagePid = {$plugin.tx_expose.persistence.storagePid}
+	}
+}

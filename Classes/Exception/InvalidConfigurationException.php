@@ -27,8 +27,8 @@
  *
  * This class ...
  *
- * @package	Tx_Expose_Exception_InvalidConfigurationException
- * @author	 Dominique Feyer <dfeyer@ttree.ch>
+ * @package	tx_expose
+ * @author	Dominique Feyer <dfeyer@ttree.ch>
  */
 class Tx_Expose_Exception_InvalidConfigurationException extends InvalidArgumentException {
 

@@ -361,6 +361,36 @@ Example::
      </record>
    </records>
 
+Access Limitation
+-----------------
+
+The extension support a basic token authentification. Authentification class can be override, and must implement
+the interface "Tx_Expose_Security_SecurityInterface" and trow "Tx_Expose_Exception_AccessException" if the access is
+not allowed.
+
+With the Simple Token authentification you can create database stored "token", with a custom hash for each token. Has must be
+unique, but that's not checked automatically now (Implementation in progress). Each token can be part of a group, and you can
+configure in the TypoScript with group can access the current WebService.
+
+Please don't use the security class without SSL enable on the webservice URL. Here a small exemple of the security
+class configuration:
+
+Example::
+
+   plugin.tx_expose {
+     settings {
+       secure {
+         class = Tx_Expose_Security_SimpleTokenSecurity
+         configuration {
+           allowedGroups = 1
+           argumentName = token
+         }
+       }
+     }
+   }
+
+The "argumentName" allow you to choose the arguement name in your plugin who store the token hash value.
+
 Todos
 =====
 

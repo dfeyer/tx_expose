@@ -41,6 +41,40 @@ abstract class Tx_Expose_MVC_Controller_BasicController extends Tx_Extbase_MVC_C
 	protected $defaultViewObjectName = 'Tx_Expose_MVC_View_XMLView';
 
 	/**
+	 * @var array
+	 */
+	protected $exposeSettings;
+
+	public function __construct() {
+		parent::__construct();
+
+		$this->exposeSettings = t3lib_div::removeDotsFromTS($GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_expose.']['settings.']);
+	}
+
+	/**
+	 * @throws Tx_Expose_Exception_AccessException
+	 */
+	public function initializeAction() {
+
+		$settings = t3lib_div::removeDotsFromTS($GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_expose.']['settings.']);
+
+		// Access Limitation
+		if (isset($settings['secure']['class']) && trim($settings['secure']['class']) !== '') {
+			if (!class_exists($settings['secure']['class'])) {
+				throw new Tx_Expose_Exception_AccessException(
+					sprintf('Security Class (%s) does not exist'),
+					1334328389
+				);
+			}
+			$securityClassConfiguration = is_array($settings['secure']['configuration']) ? $settings['secure']['configuration'] : array();
+
+			/** @var $securityClass Tx_Expose_Security_SecurityInterface */
+			$securityClass = t3lib_div::makeInstance($settings['secure']['class']);
+			$securityClass->validateAccess($this->request, $securityClassConfiguration);
+		}
+	}
+
+	/**
 	 * Supported output format
 	 *
 	 * @var array
