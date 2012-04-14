@@ -43,9 +43,23 @@ final class Tx_Expose_MVC_View_XMLView extends Tx_Expose_MVC_View_AbstractView {
 	protected $encoding = 'UTF-8';
 
 	/**
+	 * @var Tx_Expose_Parser_ParserInterface
+	 */
+	protected $parser;
+
+	/**
 	 * @var DOMDocument
 	 */
 	protected $document;
+
+	public function __construct() {
+		parent::__construct();
+
+		$this->document = new DOMDocument($this->version, $this->encoding);
+		$this->document->formatOutput = TRUE;
+
+		$this->parser = t3lib_div::makeInstance('Tx_Expose_Parser_QueryResultParser');
+	}
 
 	/**
 	 * Renders the empty view
@@ -53,9 +67,6 @@ final class Tx_Expose_MVC_View_XMLView extends Tx_Expose_MVC_View_AbstractView {
 	 * @return string An empty string
 	 */
 	public function render() {
-		$this->document = new DOMDocument($this->version, $this->encoding);
-		$this->document->formatOutput = TRUE;
-
 		$rootElement = $this->document->createElement($this->rootElementName);
 		$this->document->appendChild($rootElement);
 
