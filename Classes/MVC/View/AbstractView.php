@@ -176,7 +176,7 @@ abstract class Tx_Expose_MVC_View_AbstractView implements Tx_Extbase_MVC_View_Vi
 	 */
 	protected function getElementValue($record, $propertyPath, array $configuration, $htmlentities = TRUE) {
 		if (!empty($configuration['_typoScriptNodeValue'])) {
-			$elementValue = $this->getElementContentObjectValue($record, $configuration);
+			$elementValue = $this->getElementContentObjectValue($record, $propertyPath, $configuration);
 		} else {
 			$elementValue = $this->getElementRawValue($record, $propertyPath, $configuration, $htmlentities);
 		}
@@ -188,14 +188,26 @@ abstract class Tx_Expose_MVC_View_AbstractView implements Tx_Extbase_MVC_View_Vi
 	 * Get the value for a give element, build by content object
 	 *
 	 * @param object|array $record
+	 * @param string $propertyPath
 	 * @param array $configuration
 	 * @return string|bool
 	 */
-	protected function getElementContentObjectValue($record, array $configuration) {
+	protected function getElementContentObjectValue($record, $propertyPath, array $configuration) {
 		$data = Tx_Extbase_Reflection_ObjectAccess::getGettableProperties($record);
 		$this->contentObject->start($data);
 
-		return $this->contentObject->cObjGetSingle($configuration['_typoScriptNodeValue'], $configuration);
+		// Set current value
+		$value = $this->getElementRawValue($record, $propertyPath, $configuration);
+
+		// Process user func
+		$value = $this->processUserFunc($value, $configuration);
+
+		// Set current value
+		if (trim($value) !== '') {
+			$this->contentObject->setCurrentVal($value);
+		}
+
+		return $this->contentObject->cObjGetSingle($configuration['_typoScriptNodeValue'], $configuration['cObj']);
 	}
 
 	/**

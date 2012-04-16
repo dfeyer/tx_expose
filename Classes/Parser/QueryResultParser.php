@@ -78,9 +78,10 @@ class Tx_Expose_Parser_QueryResultParser
 	/**
 	 * @param object $record
 	 * @param array $configuration
+	 * @param null|array $parentRecord
 	 * @return array
 	 */
-	protected function processRecord($record, $configuration) {
+	protected function processRecord($record, $configuration, $parentRecord = NULL) {
 		$processedRecord = array();
 
 		foreach ($configuration as $_ => $fieldConfiguration) {
@@ -102,13 +103,13 @@ class Tx_Expose_Parser_QueryResultParser
 
 			switch ($fieldConfiguration['type']) {
 				case 'text':
-					$processedRecord[$fieldName] = $this->processField($record, $propertyPath, $fieldConfiguration);
+					$value = $this->processField($record, $propertyPath, $fieldConfiguration);
 					break;
 				case 'relation':
-					$processedRecord[$fieldName] = $this->processSingleRelation($record, $propertyPath, $fieldConfiguration);
+					$value = $this->processSingleRelation($record, $propertyPath, $fieldConfiguration);
 					break;
 				case 'relations':
-					$processedRecord[$fieldName] = $this->processMultipleRelation($record, $propertyPath, $fieldConfiguration);
+					$value = $this->processMultipleRelation($record, $propertyPath, $fieldConfiguration);
 					break;
 				default:
 					throw new Tx_Expose_Exception_InvalidConfigurationException(
@@ -116,6 +117,8 @@ class Tx_Expose_Parser_QueryResultParser
 						1334310013
 					);
 			}
+
+			$processedRecord[$fieldName] = $value;
 		}
 
 		return $processedRecord;
@@ -180,7 +183,10 @@ class Tx_Expose_Parser_QueryResultParser
 		}
 
 		foreach ($relations as $record) {
-			$this->data['_data'][$this->rootElementName][$this->getCurrentRecordCounter()][$fieldName][] = $this->processRecord($record, $relationConfiguration);
+			/// Todo fix for relation with depth >1
+			$relationRecord = array();
+			$this->processRecord($record, $relationConfiguration, $relationRecord);
+			$this->data['_data'][$this->rootElementName][$this->getCurrentRecordCounter()][$fieldName][] = $relationRecord;
 		}
 	}
 
@@ -195,7 +201,7 @@ class Tx_Expose_Parser_QueryResultParser
 	 */
 	protected function getFieldValue($record, $propertyPath, array $fieldConfiguration) {
 		if (!empty($configuration['_typoScriptNodeValue'])) {
-			$elementValue = $this->getFieldContentObjectValue($record, $fieldConfiguration);
+			$elementValue = $this->getFieldContentObjectValue($record, $propertyPath, $fieldConfiguration);
 		} else {
 			$elementValue = $this->getElementRawValue($record, $propertyPath, $fieldConfiguration);
 		}
@@ -207,12 +213,23 @@ class Tx_Expose_Parser_QueryResultParser
 	 * Get the value for a give element, build by content object
 	 *
 	 * @param object|array $record
+	 * @param string $propertyPath
 	 * @param array $fieldConfiguration
 	 * @return string|bool
 	 */
-	protected function getFieldContentObjectValue($record, array $fieldConfiguration) {
+	protected function getFieldContentObjectValue($record, $propertyPath, array $fieldConfiguration) {
 		$data = Tx_Extbase_Reflection_ObjectAccess::getGettableProperties($record);
 		$this->contentObject->start($data);
+
+		// Set current value
+		$elementValue = $this->getElementRawValue($record, $propertyPath, $fieldConfiguration);
+
+		// Process user func
+		$elementValue = $this->processUserFunc($elementValue, $fieldConfiguration);
+
+		if (trim($elementValue) !== '') {
+			$this->contentObject->setCurrentVal($elementValue);
+		}
 
 		return $this->contentObject->cObjGetSingle($fieldConfiguration['_typoScriptNodeValue'], $fieldConfiguration);
 	}
