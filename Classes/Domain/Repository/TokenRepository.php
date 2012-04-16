@@ -16,4 +16,11 @@
  */
 class Tx_Expose_Domain_Repository_TokenRepository extends Tx_Extbase_Persistence_Repository {
 
+	public function createQuery() {
+		$query = parent::createQuery();
+
+		$query->getQuerySettings()->setRespectStoragePage(FALSE);
+
+		return $query;
+	}
 }
