@@ -114,7 +114,10 @@ final class Tx_Expose_Security_SimpleTokenSecurity implements Tx_Expose_Security
 			);
 		}
 
-		if (!$token = $this->tokenRepository->findOneByHash($tokenHash)) {
+		/** @var $token Tx_Expose_Domain_Model_Token */
+		$token = $this->tokenRepository->findOneByHash($tokenHash);
+
+		if (!$token) {
 			// Avoid brutal force attack
 			sleep(10);
 
