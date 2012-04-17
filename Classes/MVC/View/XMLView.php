@@ -101,11 +101,25 @@ final class Tx_Expose_MVC_View_XMLView extends Tx_Expose_MVC_View_AbstractView {
 			}
 
 			$this->processDomainModel($baseNodeRecord, $configuration, $rootElement);
-
 			$parentElement->appendChild($rootElement);
 		}
 
 		return $parentElement;
+	}
+
+	protected function checkRequiredFields($record, $configuration) {
+		foreach ($configuration as $key => $elementConfiguration) {
+			if (isset($elementConfiguration['required']) && $elementConfiguration['required'] == TRUE) {
+
+				// Todo add support for cObj, relation and relations
+				$value = $this->getElementRawValue($record, $elementConfiguration['path'], $elementConfiguration);
+				if (trim($value) === '') {
+					return TRUE;
+				}
+			}
+		}
+
+		return FALSE;
 	}
 
 	/**
@@ -115,8 +129,16 @@ final class Tx_Expose_MVC_View_XMLView extends Tx_Expose_MVC_View_AbstractView {
 	 * @param array $configuration
 	 * @param DOMElement $rootElement
 	 * @throws InvalidArgumentException
+	 *
+	 * @return bool
 	 */
-	protected function processDomainModel($record, array $configuration, DOMElement $rootElement) {
+	protected function processDomainModel($record, array $configuration, DOMElement $rootElement, $checkRequired = FALSE) {
+
+		if ($checkRequired === TRUE && $this->checkRequiredFields($record, $configuration)) {
+			return FALSE;
+		}
+
+		// Check required fields
 		foreach ($configuration as $key => $elementConfiguration) {
 			$propertyPath = $elementConfiguration['path'];
 			$elementName = $elementConfiguration['element'] ? : t3lib_div::camelCaseToLowerCaseUnderscored($elementConfiguration['path']);
@@ -160,6 +182,8 @@ final class Tx_Expose_MVC_View_XMLView extends Tx_Expose_MVC_View_AbstractView {
 			// Append element to document
 			$rootElement->appendChild($element);
 		}
+
+		return TRUE;
 	}
 
 	/**
@@ -218,8 +242,9 @@ final class Tx_Expose_MVC_View_XMLView extends Tx_Expose_MVC_View_AbstractView {
 
 		foreach ($relations as $record) {
 			$relationRootElement = $this->document->createElement($elementConfiguration['children']);
-			$this->processDomainModel($record, $relationConfiguration, $relationRootElement);
-			$parentElement->appendChild($relationRootElement);
+			if ($this->processDomainModel($record, $relationConfiguration, $relationRootElement, TRUE)) {
+				$parentElement->appendChild($relationRootElement);
+			}
 		}
 	}
 
@@ -250,7 +275,7 @@ final class Tx_Expose_MVC_View_XMLView extends Tx_Expose_MVC_View_AbstractView {
 			);
 		}
 
-		$this->processDomainModel($relationRecord, $relationConfiguration, $element);
+		$this->processDomainModel($relationRecord, $relationConfiguration, $element, TRUE);
 	}
 
 	/**
